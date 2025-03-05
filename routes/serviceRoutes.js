@@ -16,7 +16,7 @@ router.get("/:eventType", async (req, res) => {
         .status(404)
         .json({ error: `No services found for event type: ${eventType}` });
     }
-    res.json(eventServices.services); // Send only services array
+    res.json(eventServices.servicecategory); // Send only services array
   } catch (error) {
     console.error("Error fetching services:", error);
     res.status(500).json({ error: error.message });

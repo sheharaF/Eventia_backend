@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 
 const eventServiceSchema = new mongoose.Schema({
   eventType: { type: String, required: true }, // e.g., "Wedding"
-  services: [
+  servicecategory: [
     {
       name: { type: String, required: true }, // e.g., "Photography"
       status: { type: String, enum: ["Required", "Optional"], required: true },
@@ -10,4 +10,4 @@ const eventServiceSchema = new mongoose.Schema({
   ],
 });
 
-module.exports = mongoose.model("EventServices", eventServiceSchema);
+module.exports = mongoose.model("EventService", eventServiceSchema);

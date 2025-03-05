@@ -2,31 +2,44 @@ const express = require("express");
 const router = express.Router();
 const Ad = require("../models/Ads");
 
-// ✅ Route to fetch all ads
-router.get("/", async (req, res) => {
-  try {
-    const ads = await Ad.find();
-    res.json(ads);
-  } catch (error) {
-    res.status(500).json({ error: "Internal Server Error" });
-  }
-});
-
-// ✅ Route to search ads by filters
 router.get("/search", async (req, res) => {
   try {
-    const { type, location, price, guestCount } = req.query;
+    const { eventType, serviceCategory, location, price, capacity } = req.query;
+
+    if (!eventType && !serviceCategory) {
+      return res
+        .status(400)
+        .json({ error: "eventType or serviceCategory is required" });
+    }
 
     let filters = {};
 
-    if (type && type !== "Any")
-      filters.type = { $regex: new RegExp(type, "i") }; // Case-insensitive search
-    if (location && location !== "Any") filters.location = location;
-    if (price) filters.price = { $lte: parseInt(price) }; // Find ads within budget
-    if (guestCount && guestCount !== "Any") {
+    if (eventType) {
+      filters.eventType = { $regex: new RegExp(`^${eventType}$`, "i") };
+    }
+
+    if (serviceCategory) {
+      const categories = serviceCategory.split(",").map((cat) => cat.trim());
+      filters.serviceCategory = {
+        $in: categories.map((cat) => new RegExp(`^${cat}$`, "i")),
+      };
+    }
+
+    if (location) {
       filters.$or = [
-        { guestCount: "Any" }, // Includes ads that don't require guest count
-        { guestCount: { $gte: parseInt(guestCount) } }, // Ensures min guest count
+        { "location.city": { $regex: new RegExp(location, "i") } },
+        { "location.district": { $regex: new RegExp(location, "i") } },
+      ];
+    }
+
+    if (price) {
+      filters["priceRange.max"] = { $lte: parseInt(price) };
+    }
+
+    if (capacity) {
+      filters.$or = [
+        { capacity: "Any" },
+        { capacity: { $gte: parseInt(capacity) } },
       ];
     }
 

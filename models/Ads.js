@@ -1,13 +1,21 @@
 const mongoose = require("mongoose");
 
-const AdSchema = new mongoose.Schema({
-  name: { type: String, required: true },
-  type: { type: String, required: true }, // Example: "Venue & Buffet"
-  location: { type: String, default: "Any" },
-  price: { type: Number, required: true }, // Renamed from "budget" to "price"
-  guestCount: { type: mongoose.Schema.Types.Mixed, default: "Any" }, // Can be a number or "Any"
-  image: { type: String, required: true },
+const adSchema = new mongoose.Schema({
+  title: { type: String, required: true },
+  description: { type: String, required: true },
+  vendorId: { type: String, required: true },
+  eventType: { type: String, required: true }, // Required field
+  serviceCategory: { type: String, required: true }, // Required field
+  location: {
+    city: { type: String, required: true },
+    district: { type: String, required: true },
+  },
+  priceRange: {
+    min: { type: Number, required: true },
+    max: { type: Number, required: true },
+  },
+  capacity: { type: mongoose.Schema.Types.Mixed, required: true }, // Can be a number or "Any"
+  images: [{ type: String, required: true }],
 });
 
-const Ad = mongoose.model("Ad", AdSchema);
-module.exports = Ad;
+module.exports = mongoose.model("Ad", adSchema);
