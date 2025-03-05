@@ -4,6 +4,7 @@ const adminRoutes = require("./adminRoutes");
 const serviceRoutes = require("./serviceRoutes");
 const locationRoutes = require("./locationRoutes");
 const adRoutes = require("./adRoutes");
+const packageRoutes = require("./packageRoutes");
 
 const router = express.Router();
 
@@ -12,5 +13,6 @@ router.use("/admin", adminRoutes); // Admin routes under `/api/admin`
 router.use("/services", serviceRoutes); // Service routes under `/api/services`
 router.use("/locations", locationRoutes); // Location routes under `/api/locations`
 router.use("/ads", adRoutes); // Ad routes under `/api/ads`
+router.use("/packages", packageRoutes); // Package routes under `/api/packages`
 
 module.exports = router;
