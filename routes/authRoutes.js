@@ -1,9 +1,60 @@
 const express = require("express");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const User = require("../models/User"); // Assuming you have the User model
+const User = require("../models/User");
 
 const router = express.Router();
+
+// Registration Route
+router.post("/register", async (req, res) => {
+  try {
+    const { name, email, password, role, businessRegistration } = req.body;
+
+    // Check if user already exists
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ error: "User already exists" });
+    }
+
+    // Hash password
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    // Create new user
+    const newUser = new User({
+      name,
+      email,
+      password: hashedPassword,
+      role: role || "User",
+      businessRegistration:
+        role === "Vendor" ? businessRegistration : undefined,
+      isApproved: role === "Vendor" ? false : true, // Vendors need approval
+    });
+
+    const savedUser = await newUser.save();
+
+    // Generate JWT token
+    const token = jwt.sign(
+      { id: savedUser._id, role: savedUser.role },
+      process.env.JWT_SECRET,
+      { expiresIn: "2h" }
+    );
+
+    res.status(201).json({
+      message: "Registration successful",
+      token,
+      user: {
+        id: savedUser._id,
+        name: savedUser.name,
+        email: savedUser.email,
+        role: savedUser.role,
+        isApproved: savedUser.isApproved,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
 
 // Login Route
 router.post("/login", async (req, res) => {

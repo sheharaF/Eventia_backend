@@ -15,8 +15,8 @@ async function createAdmin() {
     // Create admin user
     const admin = new User({
       name: "Admin User",
-      email: "Sheharaf01@gmail.com",
-      password: await bcrypt.hash("Sheharaf01@gmail.com", 10), // Hash the password
+      email: "Sheharaf1@gmail.com",
+      password: await bcrypt.hash("Sheharaf1@gmail.com", 10), // Hash the password
       role: "Admin",
       isApproved: true, // Admin is automatically approved
     });

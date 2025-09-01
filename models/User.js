@@ -12,6 +12,8 @@ const userSchema = new mongoose.Schema(
     },
     googleId: { type: String }, // Add Google ID for Google-authenticated users
     role: { type: String, enum: ["User", "Admin", "Vendor"], default: "User" },
+    phone: { type: String },
+    address: { type: String },
     businessRegistration: {
       type: String,
       required: function () {
