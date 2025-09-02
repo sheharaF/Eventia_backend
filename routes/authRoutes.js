@@ -28,7 +28,8 @@ router.post("/register", async (req, res) => {
       role: role || "User",
       businessRegistration:
         role === "Vendor" ? businessRegistration : undefined,
-      isApproved: role === "Vendor" ? false : true, // Vendors need approval
+      // Vendors no longer require admin approval to operate
+      isApproved: true,
     });
 
     const savedUser = await newUser.save();
@@ -65,10 +66,7 @@ router.post("/login", async (req, res) => {
     const user = await User.findOne({ email });
     if (!user) return res.status(400).json({ error: "User not found" });
 
-    // If Vendor, check approval status
-    if (user.role === "Vendor" && !user.isApproved) {
-      return res.status(403).json({ error: "Vendor approval pending" });
-    }
+    // Vendors no longer blocked by approval status
 
     // Compare password with hashed password
     const isMatch = await bcrypt.compare(password, user.password);

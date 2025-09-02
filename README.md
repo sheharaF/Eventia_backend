@@ -1,80 +1,87 @@
 # Eventia Backend
 
-A comprehensive event planning platform backend built with Node.js, Express, and MongoDB. This backend supports both User and Vendor interfaces with role-based access control.
+A comprehensive backend system for the Eventia platform, supporting user browsing, vendor services, and event planning functionality.
 
-## 🚀 Features
+## 🎯 **Core Features**
 
-### User Frontend Support
+### **User Experience**
 
-- **Landing Page**: Hero section, event planning services, vendor listings, testimonials, contact form
-- **Event Planning Form**: Budget, event type, guest count, location, date inputs
-- **Event Plan Cart**: Selected vendors and packages management
-- **Authentication**: Registration and login with role-based access
+- **Browse & Search**: Users can browse vendor services and packages with advanced filtering
+  - Filter by event type, service category, price range, location, and date
+  - Pagination support for large listings
+- **Cart Management**: Full cart functionality for selecting services and packages
+  - Add/remove services and packages
+  - Quantity management
+  - Real-time cost calculation
+- **Booking Process**: Simple checkout and booking confirmation
+  - No payment gateway required
+  - Event details collection
+  - Booking status management
 
-### Vendor Frontend Support
+### **Vendor Experience**
 
-- **Vendor Dashboard**: Services overview, bookings, earnings tracking
-- **Vendor Registration**: Business registration document upload with approval system
-- **Service Management**: Add, edit, remove services with media support
+- **Unified Posting**: Single form to post both services and packages
+- **Service Management**: Full CRUD operations for vendor services
+- **Package Management**: Create and manage all-in-one event packages
+- **Dashboard**: Overview of earnings, bookings, and performance
 
-### Admin Features
+### **Admin Experience**
 
-- **Vendor Approval System**: Review and approve/reject vendor applications
-- **System Monitoring**: User statistics, event plan tracking, contact management
-- **Content Moderation**: Testimonial approval, contact form management
+- **Vendor Approval**: Manage vendor registrations and approvals
+- **Content Moderation**: Approve/reject services, packages, and testimonials
+- **System Monitoring**: Dashboard overview and system health checks
 
-## 🛠️ Tech Stack
+## 🏗️ **Architecture**
 
-- **Backend**: Node.js, Express.js
+### **Technology Stack**
+
+- **Runtime**: Node.js with Express.js
 - **Database**: MongoDB with Mongoose ODM
-- **Authentication**: JWT, bcrypt, Google OAuth
-- **File Upload**: Multer
-- **Email**: Nodemailer
-- **Validation**: Built-in input validation
-- **Security**: CORS, role-based middleware
+- **Authentication**: JWT tokens with role-based access control
+- **File Handling**: Multer for file uploads
+- **Validation**: Built-in validation with error handling
 
-## 📁 Project Structure
+### **Core Models**
+
+- **User**: Authentication and profile management
+- **Service (Ad)**: Individual vendor services
+- **Event Package**: All-in-one event packages
+- **Event Plan**: User cart and booking management
+- **Location**: Geographic data for filtering
+
+## 📁 **Project Structure**
 
 ```
 backend/
-├── models/                 # Database models
-│   ├── User.js           # User, Vendor, Admin models
-│   ├── EventPlan.js      # Event planning and cart
-│   ├── EventService.js   # Event service categories
-│   ├── EventPackage.js   # Pre-defined packages
-│   ├── Ads.js            # Vendor services
-│   ├── Location.js       # Districts and cities
-│   ├── Testimonial.js    # Customer testimonials
-│   └── Contact.js        # Contact form submissions
-├── routes/                # API endpoints
-│   ├── authRoutes.js     # Authentication (login/register)
-│   ├── eventPlanRoutes.js # Event planning
-│   ├── vendorRoutes.js   # Vendor dashboard
-│   ├── adminRoutes.js    # Admin management
-│   ├── adRoutes.js       # Service management
-│   ├── packageRoutes.js  # Package management
-│   ├── serviceRoutes.js  # Service categories
-│   ├── locationRoutes.js # Location management
-│   ├── testimonialRoutes.js # Testimonials
-│   └── contactRoutes.js  # Contact forms
-├── middleware/            # Authentication & authorization
-│   └── authMiddleware.js # JWT verification & role checks
-├── uploads/              # File uploads
-├── Admin/                # Admin scripts
-├── index.js              # Main server file
-├── package.json          # Dependencies
-└── .env                  # Environment variables
+├── models/              # Database models
+│   ├── User.js         # User authentication & profiles
+│   ├── Ads.js          # Vendor services
+│   ├── EventPackage.js # Event packages
+│   ├── EventPlan.js    # User cart & bookings
+│   └── Location.js     # Geographic data
+├── routes/              # API route handlers
+│   ├── authRoutes.js   # Authentication (login/register)
+│   ├── userRoutes.js   # User browsing & cart management
+│   ├── vendorRoutes.js # Vendor dashboard & posting
+│   ├── adminRoutes.js  # Admin management
+│   ├── locationRoutes.js # Location data
+│   └── eventPlanRoutes.js # Event planning
+├── middleware/          # Authentication & authorization
+├── uploads/             # File uploads
+├── setupDatabase.js     # Initial data population
+├── API_DOCUMENTATION.md # Complete API reference
+└── README.md           # This file
 ```
 
-## 🚀 Quick Start
+## 🚀 **Quick Start**
 
-### 1. Prerequisites
+### **Prerequisites**
 
 - Node.js (v14 or higher)
-- MongoDB (local or Atlas)
+- MongoDB (local or cloud instance)
 - npm or yarn
 
-### 2. Installation
+### **Installation**
 
 ```bash
 # Clone the repository
@@ -84,221 +91,175 @@ cd backend
 # Install dependencies
 npm install
 
-# Create environment file
+# Set up environment variables
 cp .env.example .env
+# Edit .env with your configuration
+
+# Start the server
+npm start
 ```
 
-### 3. Environment Configuration
-
-Create a `.env` file in the root directory:
+### **Environment Variables**
 
 ```env
-MONGO_URI=mongodb://localhost:27017/eventia
-# OR for MongoDB Atlas:
-# MONGO_URI=mongodb+srv://username:password@cluster.mongodb.net/eventia
-
-JWT_SECRET=your_super_secret_jwt_key_here
 PORT=5000
-GOOGLE_CLIENT_ID=your_google_client_id
-GOOGLE_CLIENT_SECRET=your_google_client_secret
+MONGODB_URI=mongodb://localhost:27017/eventia
+JWT_SECRET=your-secret-key
+NODE_ENV=development
 ```
 
-### 4. Start the Server
+## 🗄️ **Database Setup**
+
+### **Initial Population**
 
 ```bash
-# Development mode
-npm start
-
-# Or with nodemon for development
-npm install -g nodemon
-nodemon index.js
+# Run the setup script to populate initial data
+node setupDatabase.js
 ```
 
-The server will start on `http://localhost:5000`
+This will create:
 
-## 🗄️ Database Setup
+- Location data (districts and cities)
+- Event service categories
+- Sample event packages
 
-### Option 1: MongoDB Atlas (Recommended)
+### **Collections Created**
 
-1. Go to [MongoDB Atlas](https://cloud.mongodb.com/)
-2. Create a free cluster
-3. Get your connection string
-4. Add it to your `.env` file
-
-### Option 2: Local MongoDB
-
-1. Install MongoDB locally
-2. Start MongoDB service
-3. Use `mongodb://localhost:27017/eventia` in your `.env`
-
-### Database Collections
-
-The system will automatically create these collections when you first use the API:
-
-- `users` - User accounts (User, Vendor, Admin)
-- `eventplans` - User event plans and cart
+- `users` - User accounts and profiles
 - `ads` - Vendor services
-- `eventpackages` - Pre-defined packages
-- `eventservices` - Service categories by event type
-- `locations` - Districts and cities
-- `testimonials` - Customer testimonials
-- `contacts` - Contact form submissions
+- `eventpackages` - Event packages
+- `eventplans` - User carts and bookings
+- `locations` - Geographic data
 
-## 🧪 Testing
+## 🔐 **Authentication & Roles**
 
-### Quick Testing
+### **User Roles**
+
+- **User**: Browse services, manage cart, make bookings
+- **Vendor**: Post services/packages, manage dashboard
+- **Admin**: System management and moderation
+
+### **Protected Routes**
+
+All user and vendor routes require JWT authentication:
+
+```
+Authorization: Bearer <jwt-token>
+```
+
+## 📱 **API Endpoints**
+
+### **Core User Flow**
+
+1. **Browse**: `GET /api/user/services` - Filter and search services
+2. **Browse**: `GET /api/user/packages` - Filter and search packages
+3. **Cart**: `GET /api/user/cart` - View current cart
+4. **Add**: `POST /api/user/cart/services` - Add service to cart
+5. **Add**: `POST /api/user/cart/packages` - Add package to cart
+6. **Checkout**: `POST /api/user/cart/checkout` - Confirm booking
+
+### **Vendor Operations**
+
+1. **Post**: `POST /api/vendor/post` - Post service or package
+2. **Manage**: `GET /api/vendor/services` - View posted services
+3. **Manage**: `GET /api/vendor/packages` - View posted packages
+4. **Dashboard**: `GET /api/vendor/dashboard` - Overview and stats
+
+## 🧪 **Testing**
+
+### **Manual Testing**
+
+Use the provided testing scripts:
 
 ```bash
-# Install axios for testing
-npm install axios
+# Test user functionality
+node user-test.js
 
-# Populate database with sample data for admin testing
-node populateForAdmin.js
-
-# Run comprehensive tests
-node quick-test.js
-
-# Test admin functionality specifically (requires existing data)
+# Test admin functionality
 node admin-test.js
 
-# Test user functionality including cart and purchases
-node user-test.js
+# Quick system test
+node quick-test.js
 ```
 
-### Testing Coverage
+### **API Testing**
 
-- **Basic Functionality**: Server health, database connection, authentication
-- **User Operations**: Registration, login, profile management, cart operations, purchases
-- **Vendor Operations**: Registration, service management, dashboard
-- **Admin Operations**: Management of existing vendors, services, and testimonials
-- **API Integration**: All endpoints tested with proper authentication
-
-### Test Scripts
-
-- `quick-test.js` - Tests basic user and vendor functionality
-- `admin-test.js` - Tests admin management operations (requires existing data)
-- `user-test.js` - Tests comprehensive user functionality including cart and purchases
-- `populateForAdmin.js` - Creates sample data for admin testing
-- `setupDatabase.js` - Populates database with locations and event services
-
-## 📱 Frontend Integration
-
-### API Base URL
-
-```
-http://localhost:5000/api
-```
-
-### Key Endpoints for Frontend
-
-#### Landing Page
-
-- `GET /testimonials` - Get approved testimonials
-- `GET /services` - Get event types and services
-- `POST /contact` - Submit contact form
-
-#### Event Planning
-
-- `POST /event-plans` - Create event plan
-- `GET /event-plans/my-plans` - Get user's plans
-- `GET /event-plans/:id/recommendations` - Get vendor recommendations
-
-#### Vendor Dashboard
-
-- `GET /vendor/dashboard` - Dashboard overview
-- `GET /vendor/services` - Manage services
-- `GET /vendor/bookings` - View bookings
-
-#### Authentication
-
-- `POST /auth/register` - User registration
-- `POST /auth/login` - User login
-
-## 🔒 Security Features
-
-- **JWT Authentication**: Secure token-based authentication
-- **Role-Based Access**: User, Vendor, Admin permissions
-- **Password Hashing**: bcrypt for secure password storage
-- **Input Validation**: Request data validation and sanitization
-- **CORS Protection**: Cross-origin resource sharing configuration
-- **Vendor Approval**: Business registration verification system
-
-## 📊 API Documentation
-
-For detailed API documentation, see [API_DOCUMENTATION.md](./API_DOCUMENTATION.md)
-
-## 🐛 Troubleshooting
-
-### Common Issues
-
-1. **MongoDB Connection Error**
-
-   - Check your `MONGO_URI` in `.env`
-   - Ensure MongoDB is running
-   - Check network connectivity for Atlas
-
-2. **JWT Secret Error**
-
-   - Ensure `JWT_SECRET` is set in `.env`
-   - Use a strong, unique secret
-
-3. **Port Already in Use**
-
-   - Change `PORT` in `.env`
-   - Kill existing processes on port 5000
-
-4. **CORS Issues**
-   - Check CORS configuration in `index.js`
-   - Ensure frontend URL is allowed
-
-### Debug Mode
+Use tools like Postman or curl to test endpoints:
 
 ```bash
-# Enable debug logging
-DEBUG=* npm start
+# Test service browsing
+curl "http://localhost:5000/api/user/services?eventType=wedding&minPrice=1000"
+
+# Test cart operations
+curl -X POST "http://localhost:5000/api/user/cart/services" \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{"serviceId":"...","vendorId":"...","price":500}'
 ```
 
-## 🤝 Contributing
+## 🔧 **Development**
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests if applicable
-5. Submit a pull request
+### **Adding New Features**
 
-## 📄 License
+1. Create/update models in `models/` directory
+2. Add routes in appropriate route files
+3. Update API documentation
+4. Add tests for new functionality
 
-This project is licensed under the ISC License.
+### **Code Style**
 
-## 🆘 Support
+- Use async/await for database operations
+- Implement proper error handling
+- Follow RESTful API conventions
+- Add input validation where needed
 
-For support and questions:
+## 🚀 **Deployment**
 
-- Create an issue in the repository
-- Check the API documentation
-- Review the troubleshooting section
+### **Production Considerations**
 
-## 🚀 Deployment
-
-### Production Considerations
-
-- Use environment variables for sensitive data
-- Enable HTTPS in production
-- Set up proper MongoDB indexes
-- Configure rate limiting
+- Set `NODE_ENV=production`
+- Use strong JWT secrets
+- Enable HTTPS
+- Set up proper MongoDB security
+- Configure CORS for production domains
 - Set up monitoring and logging
-- Use PM2 or similar process manager
 
-### Environment Variables for Production
+### **Environment Variables**
 
 ```env
 NODE_ENV=production
-MONGO_URI=your_production_mongodb_uri
-JWT_SECRET=your_production_jwt_secret
-PORT=5000
+MONGODB_URI=mongodb+srv://...
+JWT_SECRET=very-strong-secret-key
 CORS_ORIGIN=https://yourdomain.com
 ```
 
+## 📚 **Documentation**
+
+- **API Reference**: `API_DOCUMENTATION.md` - Complete endpoint documentation
+- **Testing Guide**: `TESTING_GUIDE.md` - Testing instructions and examples
+- **Setup Guide**: `SETUP_GUIDE.md` - Detailed setup instructions
+
+## 🤝 **Contributing**
+
+1. Follow the established code structure
+2. Add tests for new functionality
+3. Update documentation
+4. Ensure all tests pass
+5. Follow the commit message conventions
+
+## 📄 **License**
+
+This project is licensed under the MIT License.
+
+## 🆘 **Support**
+
+For issues and questions:
+
+1. Check the documentation
+2. Review existing issues
+3. Create a new issue with detailed information
+4. Include error logs and reproduction steps
+
 ---
 
-**Happy Event Planning! 🎉**
+**Eventia Backend** - Powering seamless event planning experiences! 🎉

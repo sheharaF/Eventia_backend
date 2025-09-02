@@ -115,28 +115,7 @@ router.get("/vendors", verifyToken, isAdmin, async (req, res) => {
   }
 });
 
-// Approve or Reject Vendor
-router.put("/approve-vendor/:id", verifyToken, isAdmin, async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { approve, reason } = req.body;
-
-    const vendor = await User.findById(id);
-    if (!vendor || vendor.role !== "Vendor") {
-      return res.status(404).json({ error: "Vendor not found" });
-    }
-
-    vendor.isApproved = approve;
-    await vendor.save();
-
-    res.json({
-      message: `Vendor ${approve ? "approved" : "rejected"}`,
-      reason: reason || null,
-    });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
+// Vendor approval flow removed: vendors are active on registration
 
 // Get vendor details with services
 router.get("/vendors/:id", verifyToken, isAdmin, async (req, res) => {
@@ -352,37 +331,7 @@ router.get("/testimonials", verifyToken, isAdmin, async (req, res) => {
   }
 });
 
-// Approve/Reject testimonial
-router.put(
-  "/testimonials/:id/approve",
-  verifyToken,
-  isAdmin,
-  async (req, res) => {
-    try {
-      const { id } = req.params;
-      const { approve, adminNotes } = req.body;
-
-      const testimonial = await Testimonial.findById(id);
-      if (!testimonial) {
-        return res.status(404).json({ error: "Testimonial not found" });
-      }
-
-      testimonial.isApproved = approve;
-      if (adminNotes) {
-        testimonial.adminNotes = adminNotes;
-      }
-
-      await testimonial.save();
-
-      res.json({
-        message: `Testimonial ${approve ? "approved" : "rejected"}`,
-        testimonial,
-      });
-    } catch (error) {
-      res.status(500).json({ error: error.message });
-    }
-  }
-);
+// Testimonial approval flow removed
 
 // Get all services for admin review (existing services only)
 router.get("/services", verifyToken, isAdmin, async (req, res) => {
@@ -483,32 +432,55 @@ router.get("/system-health", verifyToken, isAdmin, async (req, res) => {
   }
 });
 
-// Bulk operations for admin efficiency (only for existing vendors)
-router.post("/bulk-approve-vendors", verifyToken, isAdmin, async (req, res) => {
+// Bulk vendor approval removed
+
+// Package management for admin
+const EventPackage = require("../models/EventPackage");
+
+// Get all packages
+router.get("/packages", verifyToken, isAdmin, async (req, res) => {
   try {
-    const { vendorIds, approve, reason } = req.body;
+    const { page = 1, limit = 20, vendorId, active } = req.query;
+    const skip = (page - 1) * limit;
 
-    if (!Array.isArray(vendorIds) || vendorIds.length === 0) {
-      return res.status(400).json({ error: "Vendor IDs array is required" });
-    }
+    const query = {};
+    if (vendorId) query.vendorId = vendorId;
+    if (active === "true") query.isActive = true;
+    if (active === "false") query.isActive = false;
 
-    const result = await User.updateMany(
-      { _id: { $in: vendorIds }, role: "Vendor" },
-      {
-        $set: {
-          isApproved: approve,
-          approvalReason: reason || null,
-          approvedAt: approve ? new Date() : null,
-        },
-      }
-    );
+    const packages = await EventPackage.find(query)
+      .populate("vendorId", "name email")
+      .skip(skip)
+      .limit(parseInt(limit))
+      .sort({ createdAt: -1 });
 
+    const total = await EventPackage.countDocuments(query);
     res.json({
-      message: `${result.modifiedCount} vendors ${
-        approve ? "approved" : "rejected"
-      }`,
-      modifiedCount: result.modifiedCount,
+      packages,
+      pagination: {
+        current: parseInt(page),
+        total: Math.ceil(total / limit),
+        hasNext: page * limit < total,
+        hasPrev: page > 1,
+      },
     });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Toggle package active state
+router.put("/packages/:id/toggle", verifyToken, isAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { active } = req.body;
+
+    const pkg = await EventPackage.findById(id);
+    if (!pkg) return res.status(404).json({ error: "Package not found" });
+
+    pkg.isActive = !!active;
+    await pkg.save();
+    res.json({ message: `Package ${pkg.isActive ? "activated" : "deactivated"}`, package: pkg });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

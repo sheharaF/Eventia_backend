@@ -21,6 +21,8 @@ const adSchema = new mongoose.Schema(
     },
     capacity: { type: mongoose.Schema.Types.Mixed, required: true }, // Can be a number or "Any"
     images: [{ type: String, required: true }],
+    availableDates: [{ type: Date }],
+    isActive: { type: Boolean, default: true },
   },
   { timestamps: true }
 );

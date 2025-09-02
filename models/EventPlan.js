@@ -9,24 +9,29 @@ const eventPlanSchema = new mongoose.Schema(
     },
     eventType: {
       type: String,
-      required: true,
       enum: ["Wedding", "Birthday", "Corporate", "Anniversary", "Other"],
+      required: function () {
+        return this.status !== "Planning"; // required when confirming
+      },
     },
     budget: {
       type: Number,
-      required: true,
+      required: function () {
+        return this.status !== "Planning";
+      },
     },
     guestCount: {
       type: Number,
-      required: true,
+      required: function () {
+        return this.status !== "Planning";
+      },
     },
     preferredLocation: {
-      city: { type: String, required: true },
-      district: { type: String, required: true },
+      city: { type: String },
+      district: { type: String },
     },
     eventDate: {
       type: Date,
-      required: true,
     },
     status: {
       type: String,
@@ -44,6 +49,7 @@ const eventPlanSchema = new mongoose.Schema(
           ref: "Ad",
         },
         price: Number,
+        quantity: { type: Number, default: 1 },
         notes: String,
       },
     ],
@@ -53,7 +59,12 @@ const eventPlanSchema = new mongoose.Schema(
           type: mongoose.Schema.Types.ObjectId,
           ref: "EventPackage",
         },
+        vendorId: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "User",
+        },
         price: Number,
+        quantity: { type: Number, default: 1 },
         notes: String,
       },
     ],

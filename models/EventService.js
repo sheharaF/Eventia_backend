@@ -7,7 +7,8 @@ const eventServiceSchema = new mongoose.Schema(
       required: true,
       enum: ["Wedding", "Birthday", "Corporate", "Anniversary", "Other"],
     },
-    serviceCategories: [
+    // Match existing Mongo documents exactly: `servicecategory`
+    servicecategory: [
       {
         name: { type: String, required: true }, // e.g., "Photography"
         status: {

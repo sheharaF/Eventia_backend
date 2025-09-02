@@ -14,7 +14,7 @@ router.get("/", async (req, res) => {
 
 // Route to get event packages by event type
 router.get("/:eventType", async (req, res) => {
-  const { eventType } = req.query;
+  const { eventType } = req.params;
   try {
     const packages = await EventPackage.find({ eventType });
     res.json(packages);

@@ -20,7 +20,8 @@ const userSchema = new mongoose.Schema(
         return this.role === "Vendor";
       },
     },
-    isApproved: { type: Boolean, default: false },
+    // Keep for backwards compatibility with older flows
+    isApproved: { type: Boolean, default: true },
   },
   { timestamps: true }
 );
