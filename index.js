@@ -14,6 +14,10 @@ app.use(
   })
 );
 
+// Serve uploaded images statically
+const path = require("path");
+app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
+
 // MongoDB Cloud Connection
 mongoose
   .connect(process.env.MONGO_URI, {

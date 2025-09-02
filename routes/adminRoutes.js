@@ -115,7 +115,70 @@ router.get("/vendors", verifyToken, isAdmin, async (req, res) => {
   }
 });
 
-// Vendor approval flow removed: vendors are active on registration
+// Approve or Reject a Vendor
+router.put("/vendors/:id/approve", verifyToken, isAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { approve, reason } = req.body;
+
+    if (typeof approve === "undefined") {
+      return res.status(400).json({ error: "'approve' boolean is required" });
+    }
+
+    const vendor = await User.findById(id);
+    if (!vendor || vendor.role !== "Vendor") {
+      return res.status(404).json({ error: "Vendor not found" });
+    }
+
+    vendor.isApproved = !!approve;
+    if (reason) vendor.approvalReason = reason;
+    if (approve) vendor.approvedAt = new Date();
+    await vendor.save();
+
+    res.json({
+      message: `Vendor ${approve ? "approved" : "rejected"}`,
+      vendor: {
+        _id: vendor._id,
+        name: vendor.name,
+        email: vendor.email,
+        isApproved: vendor.isApproved,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Delete a Vendor account (safe delete)
+router.delete("/vendors/:id", verifyToken, isAdmin, async (req, res) => {
+  try {
+    const vendor = await User.findById(req.params.id);
+    if (!vendor || vendor.role !== "Vendor") {
+      return res.status(404).json({ error: "Vendor not found" });
+    }
+
+    // Block deletion if vendor has services or referenced in event plans
+    const hasServices = await Ad.exists({ vendorId: req.params.id });
+    const referencedInPlans = await EventPlan.exists({
+      $or: [
+        { "selectedVendors.vendorId": req.params.id },
+        { "selectedPackages.vendorId": req.params.id },
+      ],
+    });
+
+    if (hasServices || referencedInPlans) {
+      return res.status(400).json({
+        error:
+          "Cannot delete vendor with listings or bookings. Deactivate listings and resolve bookings first.",
+      });
+    }
+
+    await User.findByIdAndDelete(req.params.id);
+    res.json({ message: "Vendor deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
 
 // Get vendor details with services
 router.get("/vendors/:id", verifyToken, isAdmin, async (req, res) => {
@@ -179,6 +242,64 @@ router.get("/event-plans", verifyToken, isAdmin, async (req, res) => {
         hasPrev: page > 1,
       },
     });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// View all registered users (role: User)
+router.get("/users", verifyToken, isAdmin, async (req, res) => {
+  try {
+    const { page = 1, limit = 20, search } = req.query;
+    const skip = (page - 1) * limit;
+
+    const query = { role: "User" };
+    if (search) {
+      query.$or = [
+        { name: { $regex: search, $options: "i" } },
+        { email: { $regex: search, $options: "i" } },
+      ];
+    }
+
+    const users = await User.find(query)
+      .skip(skip)
+      .limit(parseInt(limit))
+      .sort({ createdAt: -1 })
+      .select("-password");
+
+    const total = await User.countDocuments(query);
+
+    res.json({
+      users,
+      pagination: {
+        current: parseInt(page),
+        total: Math.ceil(total / limit),
+        hasNext: page * limit < total,
+        hasPrev: page > 1,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Delete a User account (safe delete)
+router.delete("/users/:id", verifyToken, isAdmin, async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user || user.role !== "User") {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    const hasEventPlans = await EventPlan.exists({ userId: req.params.id });
+    if (hasEventPlans) {
+      return res.status(400).json({
+        error: "Cannot delete user with existing event plans/bookings",
+      });
+    }
+
+    await User.findByIdAndDelete(req.params.id);
+    res.json({ message: "User deleted successfully" });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

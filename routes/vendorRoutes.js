@@ -1,5 +1,8 @@
 const express = require("express");
 const router = express.Router();
+const multer = require("multer");
+const fs = require("fs");
+const path = require("path");
 const Ad = require("../models/Ads");
 const EventPackage = require("../models/EventPackage");
 const EventPlan = require("../models/EventPlan");
@@ -91,22 +94,57 @@ router.get("/dashboard", verifyToken, isVendor, async (req, res) => {
   }
 });
 
-// Post service or package (combined form)
-router.post("/post", verifyToken, isVendor, async (req, res) => {
+// Ensure uploads directory exists
+const uploadsDir = path.join(process.cwd(), "uploads");
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
+
+// Multer storage for saving images on backend
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, uploadsDir);
+  },
+  filename: function (req, file, cb) {
+    const ext = path.extname(file.originalname) || ".jpg";
+    const safeName = file.fieldname + "-" + Date.now() + "-" + Math.round(Math.random() * 1e9) + ext;
+    cb(null, safeName);
+  },
+});
+
+const upload = multer({ storage });
+
+// Helper to parse possibly-stringified JSON fields from multipart
+function parseMaybeJSON(value) {
+  if (typeof value === "string") {
+    try {
+      return JSON.parse(value);
+    } catch (_) {
+      return value;
+    }
+  }
+  return value;
+}
+
+// Post service or package (combined form) with image upload
+router.post("/post", verifyToken, isVendor, upload.array("images", 10), async (req, res) => {
   try {
-    const {
-      type, // 'service' or 'package'
-      title,
-      description,
-      eventType,
-      serviceCategory, // for services
-      services, // for packages
-      location,
-      capacity,
-      availableDates,
-      images,
-      isActive = true,
-    } = req.body;
+    // Pull scalar fields
+    const type = req.body.type;
+    const title = req.body.title;
+    const description = req.body.description;
+    const eventType = req.body.eventType;
+    const isActive = req.body.isActive !== undefined ? req.body.isActive === "true" || req.body.isActive === true : true;
+
+    // Parse complex fields (may arrive as JSON strings)
+    const serviceCategory = req.body.serviceCategory;
+    const services = parseMaybeJSON(req.body.services);
+    const location = parseMaybeJSON(req.body.location);
+    const capacity = parseMaybeJSON(req.body.capacity);
+    const availableDates = parseMaybeJSON(req.body.availableDates);
+
+    // Build image paths from uploaded files
+    const uploadedImages = (req.files || []).map((f) => path.posix.join("/uploads", path.basename(f.path)));
 
     // ✅ Validation
     if (!type || !title || !description || !eventType) {
@@ -123,29 +161,28 @@ router.post("/post", verifyToken, isVendor, async (req, res) => {
       }
 
       // Expect priceRange from body
-      if (
-        !req.body.priceRange ||
-        req.body.priceRange.min === undefined ||
-        req.body.priceRange.max === undefined
-      ) {
+      const priceRangeRaw = parseMaybeJSON(req.body.priceRange);
+      if (!priceRangeRaw || priceRangeRaw.min === undefined || priceRangeRaw.max === undefined) {
         return res.status(400).json({
           error: "priceRange.min and priceRange.max are required for services",
         });
       }
-
+      if (!uploadedImages.length) {
+        return res.status(400).json({ error: "At least one image is required" });
+      }
       const newService = new Ad({
         title,
         description,
         eventType,
         serviceCategory,
         priceRange: {
-          min: parseFloat(req.body.priceRange.min),
-          max: parseFloat(req.body.priceRange.max),
+          min: parseFloat(priceRangeRaw.min),
+          max: parseFloat(priceRangeRaw.max),
         },
         location,
         capacity,
         availableDates,
-        images,
+        images: uploadedImages,
         isActive,
         vendorId: req.user.id,
       });
@@ -168,6 +205,9 @@ router.post("/post", verifyToken, isVendor, async (req, res) => {
           error: "services array is required for packages",
         });
       }
+      if (!uploadedImages.length) {
+        return res.status(400).json({ error: "At least one image is required" });
+      }
 
       const newPackage = new EventPackage({
         title,
@@ -178,7 +218,7 @@ router.post("/post", verifyToken, isVendor, async (req, res) => {
         location,
         capacity,
         availableDates,
-        images,
+        images: uploadedImages,
         isActive,
         vendorId: req.user.id,
       });
